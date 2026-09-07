@@ -1,0 +1,321 @@
+{
+  "_comment": "Entirely fictional. Domains use the IANA reserved example.* names, which belong to nobody. This file demonstrates every field the renderer reads; see audit_report.py for the ones that are optional.",
+
+  "meta": {
+    "client_name": "Contoso Analytics",
+    "auditor_name": "J. Okafor",
+    "agency_name": "Northbound Outbound",
+    "audit_date": "2026-03-14",
+    "audit_period": "2026-01-01 to 2026-03-13",
+    "primary_domain": "example.com",
+    "esp": "google-workspace",
+    "sending_domains": ["getexample.com", "examplehq.com", "example-team.com"]
+  },
+
+  "summary": {
+    "narrative": "The programme is sending roughly 14,000 messages a month across three secondary domains and reaching the inbox about 61% of the time. The single most important problem is that DKIM signing was never activated on two of the three sending domains, so two thirds of the volume authenticates on SPF alone and fails DMARC alignment at every receiver that checks it. Fixing that is a thirty-minute change in the admin console and should recover most of the placement gap on its own. Behind it sits a list quality problem: the January import was not verified before loading, and the resulting 6.1% hard bounce rate has been eroding domain reputation for ten weeks. Both are fixable inside a fortnight; neither requires new domains.",
+    "overall_assessment": "Fixable. Two specific technical faults account for most of the loss, and the underlying estate design is sound."
+  },
+
+  "authentication": {
+    "domains": [
+      {
+        "domain": "getexample.com",
+        "spf": "pass",
+        "dkim": "pass",
+        "dmarc": "present",
+        "policy": "p=none",
+        "aligned": "yes"
+      },
+      {
+        "domain": "examplehq.com",
+        "spf": "pass",
+        "dkim": "absent",
+        "dmarc": "present",
+        "policy": "p=none",
+        "aligned": "no"
+      },
+      {
+        "domain": "example-team.com",
+        "spf": "pass",
+        "dkim": "absent",
+        "dmarc": "absent",
+        "policy": "n/a",
+        "aligned": "no"
+      }
+    ],
+    "findings": [
+      {
+        "severity": "critical",
+        "title": "DKIM signing is not active on two of three sending domains",
+        "observed": "A TXT lookup on the DKIM selector returns NXDOMAIN for examplehq.com and example-team.com. Raw headers on test messages from both domains show dkim=none. Only getexample.com signs.",
+        "impact": "Roughly two thirds of monthly volume, about 9,300 messages, authenticates on SPF alone. Every receiver enforcing DMARC treats these as unaligned. This is the largest single contributor to the 61% inbox placement figure.",
+        "fix": "Generate a 2048-bit DKIM key for each domain in the Google Workspace admin console, publish the TXT record, wait for it to resolve, then activate signing. Activating before the record resolves will fail DKIM on every message sent in the gap.",
+        "effort": "low",
+        "owner": "Northbound Outbound",
+        "target": "2026-03-17"
+      },
+      {
+        "severity": "high",
+        "title": "example-team.com has no DMARC record",
+        "observed": "dig +short TXT _dmarc.example-team.com returns nothing.",
+        "impact": "No policy is published and no aggregate reports are generated, so there is no visibility into who is sending as this domain or how its mail is being treated. The domain is also open to being spoofed with no signal to anyone.",
+        "fix": "Publish v=DMARC1; p=none; rua=mailto:dmarc-reports@example.com; adkim=r; aspf=r; fo=1; pct=100. Leave at p=none until four consecutive weeks of reports show every legitimate source passing.",
+        "effort": "low",
+        "owner": "Northbound Outbound",
+        "target": "2026-03-17"
+      },
+      {
+        "severity": "medium",
+        "title": "DMARC rua mailbox is not being read",
+        "observed": "The rua address on getexample.com and examplehq.com resolves to a shared mailbox with 1,847 unread aggregate reports, the oldest dated 2025-11-02.",
+        "impact": "The reports exist but nobody has looked at them, so the estate has no early warning of spoofing or of a legitimate sending source falling out of alignment. It also means there is no evidence base for raising the DMARC policy above p=none.",
+        "fix": "Assign the mailbox to a named owner with a weekly review, or route the reports into a DMARC report parser.",
+        "effort": "low",
+        "owner": "Client",
+        "target": "2026-03-21"
+      }
+    ]
+  },
+
+  "reputation": {
+    "checks": {
+      "public_blocklist_appearances": "none",
+      "youngest_sending_domain_age": "11 months",
+      "primary_domain_used_for_cold_sending": "no",
+      "sending_ip_type": "provider pool",
+      "redirect_configured_on_sending_domains": "partial"
+    },
+    "findings": [
+      {
+        "severity": "medium",
+        "title": "example-team.com does not resolve over HTTPS",
+        "observed": "https://example-team.com returns a certificate error. The other two domains 301 to example.com correctly.",
+        "impact": "A prospect who checks the sending domain sees a browser security warning attached to the client's name. Filters also treat a non-resolving sending domain as a weak signal.",
+        "fix": "Configure the redirect through a host that issues a certificate, matching the setup already working on the other two domains.",
+        "effort": "low",
+        "owner": "Client",
+        "target": "2026-03-24"
+      },
+      {
+        "severity": "info",
+        "title": "No blocklist appearances",
+        "observed": "All three sending domains and the primary checked against the major public blocklists on 2026-03-14. No listings.",
+        "impact": "None. Recorded so the position is documented before remediation begins.",
+        "fix": "No action. Re-check monthly.",
+        "effort": "low",
+        "owner": "Northbound Outbound",
+        "target": "monthly"
+      }
+    ]
+  },
+
+  "list_hygiene": {
+    "metrics": {
+      "hard_bounce_rate": "6.1%",
+      "spam_complaint_rate": "0.08%",
+      "unsubscribe_rate": "0.4%",
+      "list_verified_before_import": "no",
+      "suppression_list_enforced_at_send_time": "yes",
+      "duplicate_contacts_across_active_sequences": 412,
+      "role_addresses_on_list": 233,
+      "records_older_than_retention_period": 0
+    },
+    "findings": [
+      {
+        "severity": "critical",
+        "title": "Hard bounce rate of 6.1% from an unverified January import",
+        "observed": "The 8,400-record batch loaded on 2026-01-09 was not run through verification. Its bounce rate is 9.4%, against 1.2% for every other source on the list. Blended across all sending it produces 6.1%.",
+        "impact": "Sustained bounce rates above 5% degrade domain reputation continuously and are the fastest way to lose a warmed estate. Ten weeks of this has measurably reduced placement across all three domains, including the two that are otherwise configured correctly.",
+        "fix": "Suspend sending to the 2026-01-09 batch immediately. Run it through verification, discard everything not returned as valid, and reload. Make verification a required gate before any future import.",
+        "effort": "medium",
+        "owner": "Northbound Outbound",
+        "target": "2026-03-18"
+      },
+      {
+        "severity": "high",
+        "title": "412 contacts are enrolled in two active sequences at once",
+        "observed": "412 email addresses appear in both the enterprise and mid-market cadences. The database has no constraint preventing it and the CRM does not check.",
+        "impact": "These prospects receive two unrelated cold sequences from the same company in the same week. Contacts in this state complain at roughly four times the rate of the rest of the list.",
+        "fix": "Apply the partial unique index on active cadence enrolment from 07-data/schema.sql, then remove the duplicate enrolments keeping the higher-scoring lane.",
+        "effort": "medium",
+        "owner": "Northbound Outbound",
+        "target": "2026-03-21"
+      },
+      {
+        "severity": "medium",
+        "title": "233 role addresses on the list",
+        "observed": "233 addresses at the info@, sales@, admin@ and enquiries@ local parts.",
+        "impact": "Role addresses reply at close to zero, complain at above-average rates, and are a common source of spam trap hits. They contribute volume with no pipeline.",
+        "fix": "Add a role-address rejection rule to the ingestion pipeline and suppress the existing 233.",
+        "effort": "low",
+        "owner": "Northbound Outbound",
+        "target": "2026-03-21"
+      }
+    ]
+  },
+
+  "content": {
+    "checks": {
+      "physical_postal_address_in_every_message": "no",
+      "unsubscribe_mechanism_present_and_working": "yes",
+      "list_unsubscribe_header_present": "no",
+      "links_in_first_touch_messages": 2,
+      "images_in_cold_messages": 0,
+      "tracking_domain": "shared",
+      "unsubstantiated_claims_present": "yes",
+      "text_to_html_ratio": "high, mostly plain text"
+    },
+    "findings": [
+      {
+        "severity": "high",
+        "title": "No physical postal address in messages sent from two mailboxes",
+        "observed": "Four of the nine mailboxes have a signature without a postal address. The tenant-level signature template did not apply to users created after 2025-12-01.",
+        "impact": "This is a CAN-SPAM violation on US recipients and a CASL violation on Canadian ones, both of which carry per-message penalties. It is a legal exposure, not a styling problem.",
+        "fix": "Add the address to all four signatures individually and verify by sending a test from each mailbox. Do not rely on the tenant template.",
+        "effort": "low",
+        "owner": "Northbound Outbound",
+        "target": "2026-03-16"
+      },
+      {
+        "severity": "high",
+        "title": "Two links in the first message of every sequence, both on a shared tracking domain",
+        "observed": "Node 1 of both cadences contains a calendar link and a website link, rewritten through the sending platform's shared tracking domain.",
+        "impact": "Shared tracking domains are widely blocklisted because every customer of the platform shares their reputation. Two rewritten links in a first cold message is a strong spam signal on its own.",
+        "fix": "Remove both links from the first touch. Publish a dedicated tracking CNAME per sending domain and point the platform at it for later touches.",
+        "effort": "medium",
+        "owner": "Northbound Outbound",
+        "target": "2026-03-24"
+      },
+      {
+        "severity": "medium",
+        "title": "Unsubstantiated performance claim in node 3",
+        "observed": "Node 3 states a percentage improvement figure. The client confirmed there is no source for it and that it was written as an illustration.",
+        "impact": "A claim the client cannot substantiate is a consumer protection exposure in both the US and the UK, and it is the kind of thing that gets a sender reported rather than ignored.",
+        "fix": "Replace with a substantiable proof point from the brain file, or remove the claim.",
+        "effort": "low",
+        "owner": "Client",
+        "target": "2026-03-21"
+      },
+      {
+        "severity": "low",
+        "title": "No List-Unsubscribe header",
+        "observed": "Raw headers on test messages from all three domains contain no List-Unsubscribe or List-Unsubscribe-Post header.",
+        "impact": "Recipients who want out have to find the footer link, and some will use the spam button instead. The major providers now expect the header on bulk senders.",
+        "fix": "Enable List-Unsubscribe with one-click POST in the sending platform, pointed at the same endpoint as the footer link.",
+        "effort": "low",
+        "owner": "Northbound Outbound",
+        "target": "2026-03-28"
+      }
+    ]
+  },
+
+  "sending_patterns": {
+    "metrics": {
+      "sends_per_mailbox_per_day": 52,
+      "mailboxes_in_rotation": 9,
+      "sending_domains_in_rotation": 3,
+      "send_timing": "bursts at 09:00 and 14:00",
+      "weekend_sending": "no",
+      "volume_ramp_on_new_domains": "immediate",
+      "warmup_traffic_maintained_at_steady_state": "no"
+    },
+    "findings": [
+      {
+        "severity": "medium",
+        "title": "Volume bursts at two fixed times each day",
+        "observed": "Send logs show the full daily volume leaving in two clusters, each under twenty minutes.",
+        "impact": "A machine pattern that receivers detect. Human business mail is irregularly distributed across the working day.",
+        "fix": "Configure the sending platform to distribute sends randomly across a 09:00 to 17:00 window in the recipient's timezone, with a randomised gap between messages.",
+        "effort": "low",
+        "owner": "Northbound Outbound",
+        "target": "2026-03-21"
+      },
+      {
+        "severity": "medium",
+        "title": "Warmup traffic was switched off after the initial ramp",
+        "observed": "Warmup network enrolment ended 2025-05-12 and was not resumed.",
+        "impact": "Removes the engagement floor under the domains. When the cold list underperforms, as it has since the January import, there is nothing holding the engagement signal up.",
+        "fix": "Re-enrol all nine mailboxes at roughly 20% of daily volume and leave them enrolled permanently.",
+        "effort": "low",
+        "owner": "Northbound Outbound",
+        "target": "2026-03-18"
+      },
+      {
+        "severity": "medium",
+        "title": "52 sends per mailbox per day exceeds the planned ceiling",
+        "observed": "The build specified 40 per mailbox per day. Observed volume is 52, a 30% overrun.",
+        "impact": "Raises risk without a corresponding increase in pipeline, since reply rate has not moved. The overrun is also compounding the bounce rate problem by pushing more of the unverified batch out per day.",
+        "fix": "Cap at 40 in the sending platform, not only in the sequence configuration.",
+        "effort": "low",
+        "owner": "Northbound Outbound",
+        "target": "2026-03-17"
+      }
+    ]
+  },
+
+  "inbox_placement": {
+    "results": [
+      {
+        "provider": "Consumer webmail A",
+        "inbox": "72%",
+        "promotions": "18%",
+        "spam": "10%",
+        "not_delivered": "0%"
+      },
+      {
+        "provider": "Consumer webmail B",
+        "inbox": "64%",
+        "promotions": "9%",
+        "spam": "27%",
+        "not_delivered": "0%"
+      },
+      {
+        "provider": "Corporate Microsoft 365",
+        "inbox": "41%",
+        "promotions": "n/a",
+        "spam": "52%",
+        "not_delivered": "7%"
+      },
+      {
+        "provider": "Corporate Google Workspace",
+        "inbox": "68%",
+        "promotions": "12%",
+        "spam": "20%",
+        "not_delivered": "0%"
+      }
+    ],
+    "overall_placement_rate": "61%",
+    "test": {
+      "message": "Node 1, mid-market lane, sent as production copy",
+      "sending_domain": "examplehq.com",
+      "date": "2026-03-14"
+    },
+    "findings": [
+      {
+        "severity": "high",
+        "title": "41% inbox placement at corporate Microsoft 365 recipients",
+        "observed": "Seed test on 2026-03-14: 41% inbox, 52% spam, 7% not delivered at all.",
+        "impact": "Microsoft 365 recipients are 58% of the list. Roughly 4,700 messages a month are not being seen. The gap between this and the 68% at corporate Google Workspace points at the authentication fault rather than the copy, since the copy is identical.",
+        "fix": "Fix DKIM on examplehq.com and re-test. Expect this figure to move first and furthest of anything in this report.",
+        "effort": "low",
+        "owner": "Northbound Outbound",
+        "target": "2026-03-19"
+      }
+    ]
+  },
+
+  "remediation": {
+    "sequencing_note": "Fix in this order and re-measure between steps. First, DKIM on the two unsigned domains and the missing DMARC record: placement cannot be assessed while authentication is broken, and every other change measured before this one will be measured against a moving baseline. Second, suspend and re-verify the January import, which stops the bounce rate damage accumulating. Third, the content and sending pattern items, which are individually small. Re-run the seed test seven days after the authentication fix and again seven days after the list fix, so each change can be attributed.",
+    "limitations": [
+      "Authentication was assessed from public DNS and from raw headers on test messages. No access to the ESP admin console was provided, so tenant-level signing configuration was inferred rather than observed.",
+      "Bounce and complaint rates are as reported by the sending platform for the period stated. Historical send logs before 2026-01-01 were not available.",
+      "Seed testing covered the four providers listed. No conclusion is drawn about placement at other providers.",
+      "No assessment was made of the list's lawful basis for any jurisdiction. That is a question for the client's counsel and is outside the scope of a deliverability audit."
+    ]
+  },
+
+  "appendix": {
+    "raw_output": "$ dig +short TXT examplehq.com | grep spf1\n\"v=spf1 include:_spf.google.com ~all\"\n\n$ dig +short TXT google._domainkey.examplehq.com\n(no answer)\n\n$ dig +short TXT _dmarc.examplehq.com\n\"v=DMARC1; p=none; rua=mailto:dmarc-reports@example.com; adkim=r; aspf=r; fo=1; pct=100\"\n\n$ dig +short TXT _dmarc.example-team.com\n(no answer)\n\n$ dig +short MX examplehq.com\n1 smtp.google.com.\n\nAuthentication-Results header, test message from examplehq.com:\n  spf=pass smtp.mailfrom=examplehq.com;\n  dkim=none;\n  dmarc=fail (p=NONE) header.from=examplehq.com"
+  }
+}

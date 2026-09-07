@@ -1,0 +1,9 @@
+# Standard library only, with one exception.
+#
+# 07-data/list_pipeline.py needs a Postgres driver to load records. Its --dry-run mode
+# performs the full parse, normalize, validate, dedupe and suppression pass with no
+# database and no dependencies, so nothing here is required to exercise that logic.
+#
+# Every other script in this repository runs on the Python 3.11+ standard library.
+
+psycopg[binary]>=3.1

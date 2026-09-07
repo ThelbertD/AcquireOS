@@ -1,0 +1,175 @@
+{
+  "_comment": "Entirely fictional. Mirrors the sections of intake-form.md. Domains use the IANA reserved example.* names, which belong to nobody. This intake is deliberately complete enough to build from, with two small gaps left in so the warning path is visible when the script runs.",
+
+  "company": {
+    "trading_name": "Contoso Analytics",
+    "legal_entity": "Contoso Analytics Inc. (Delaware, 7654321)",
+    "postal_address": "100 Example Plaza, Suite 400, Denver, CO 80202, USA",
+    "primary_domain": "example.com",
+    "privacy_policy_url": "https://example.com/privacy",
+    "dpo_contact": "privacy@example.com",
+    "decision_maker_name": "A. Rivera",
+    "decision_maker_email": "a.rivera@example.com",
+    "reply_owner": "A. Rivera, with M. Chen as second reader",
+    "absence_cover": "M. Chen covers replies during A. Rivera's absence"
+  },
+
+  "offer": {
+    "one_sentence": "Software that turns a spreadsheet schedule into a live board everyone works from.",
+    "problem": "Schedulers rebuild the same plan three times a day because nothing syncs between the spreadsheet, the calendar and the people doing the work.",
+    "what_changes": "One plan, changed once, visible to everyone immediately. The scheduler stops being a message relay and the daily rebuild disappears.",
+    "time_to_value": "Two weeks from signing to a live board",
+    "price_shape": "Per seat, per month, annual commitment",
+    "typical_deal_size": "18,000 USD annual contract value",
+    "typical_sales_cycle": "6 to 10 weeks"
+  },
+
+  "icp": {
+    "description": "Operations leaders at 50 to 500 employee firms that coordinate people or assets across multiple sites and still run the master schedule in a spreadsheet. They have outgrown the spreadsheet but have not found a system worth the migration.",
+    "job_titles": ["Operations Director", "Head of Operations", "Operations Manager", "COO", "Head of Planning"],
+    "company_size_band": "50 to 500 employees",
+    "geography": ["United States", "United Kingdom", "Canada"],
+    "sector": "Any sector coordinating people or assets across sites. Sector is not a fit signal; the coordination problem is.",
+    "not_for": "Single-site operations under 50 people, where the spreadsheet genuinely still works. Also not for anyone who has already bought a dedicated planning system in the last 18 months, because the migration objection is unanswerable that soon after.",
+    "fit_signals": ["Multiple sites listed on their own site", "Job postings mentioning scheduling or coordination", "No dedicated planning tool detectable"],
+    "trigger_event": "Opening a new site, or posting a job for a scheduling or coordination role. Both mean the current process has just been stretched past where it worked.",
+    "never_contact": "Supplied as a CSV: 340 existing customers, 22 partners, 6 competitors, plus every domain in the current pipeline."
+  },
+
+  "segmentation": {
+    "segment_field": "employee_band",
+    "lanes": ["enterprise", "mid-market", "smb"],
+    "default_lane": "mid-market",
+    "cadence_length_days": 8,
+    "lane_differences": "Enterprise leads on multi-site coordination and the cost of the rebuild across teams. Mid-market leads on the scheduler's own time, because at that size it is one identifiable person losing their week. SMB leads on how fast it is to start, because the objection there is always the migration rather than the value.",
+    "approximate_share": {
+      "enterprise": "15%",
+      "mid-market": "55%",
+      "smb": "30%"
+    }
+  },
+
+  "proof": {
+    "points": [
+      {
+        "claim": "Cut the daily schedule rebuild from three passes to one at a 120-vehicle operator",
+        "evidence": "Written case study, customer has approved being described but not named. Before and after figures taken from their own logs over an 8-week period.",
+        "nameable": false
+      },
+      {
+        "claim": "Average time to a live board across the last 20 implementations is 11 working days",
+        "evidence": "Internal implementation records, 2025-01 to 2026-02, 20 customers. Auditable.",
+        "nameable": false
+      },
+      {
+        "claim": "SOC 2 Type II",
+        "evidence": "Report available under NDA, dated 2025-11",
+        "nameable": true
+      }
+    ],
+    "evidence_confirmed": "yes",
+    "nameable_customers": "None currently cleared to be named in outbound. Two are in the approval process."
+  },
+
+  "objections": {
+    "items": [
+      {
+        "objection": "We already have a system for this",
+        "rebuttal": "Most of our customers did too. It sits on top of what they have and reads from it; there is no migration and nothing gets turned off."
+      },
+      {
+        "objection": "My team will not use another tool",
+        "rebuttal": "They do not have to open it. It publishes to whatever they already look at. The only person who works in it is the scheduler."
+      },
+      {
+        "objection": "We tried something like this and it did not stick",
+        "rebuttal": "That is the usual story, and it is almost always because the tool needed everyone to change at once. Ours needs one person to change."
+      },
+      {
+        "objection": "This is not a priority this quarter",
+        "rebuttal": "Fair. The reason it comes up now is that it usually becomes urgent the week a site opens, and it is a worse conversation then."
+      }
+    ],
+    "most_common": "We already have a system for this",
+    "loss_reasons": "Most losses are to doing nothing. Second most common is a champion leaving mid-cycle."
+  },
+
+  "voice": {
+    "tone": "Direct and plain. Formality 2 of 5, directness 4 of 5, technical depth 2 of 5, warmth 3 of 5, length 2 of 5. Short sentences. No enthusiasm the reader has not earned a reason for.",
+    "client_vocabulary": "They say 'the board' not 'the platform', 'schedulers' not 'planners', 'sites' not 'locations'. Their customers are 'operators'.",
+    "forbidden_words": "revolutionary, seamless, game-changing, best-in-class, solution, leverage as a verb, synergy, guarantee, risk-free",
+    "competitor_exclusions": "None are ever to be named. If a prospect names one, the reply acknowledges it and does not compare.",
+    "required_disclaimer": "none",
+    "writing_samples": null
+  },
+
+  "ask": {
+    "primary_cta": "A 20-minute call this week or next",
+    "required_input": "A screenshot or export of their current schedule spreadsheet",
+    "what_you_do_with_it": "We rebuild their actual schedule as a live board and send it back within one working day. It is theirs whether or not they buy anything.",
+    "fallback_ask": "A one-line answer to whether the rebuild happens daily or weekly",
+    "booking_link": "https://example.com/book"
+  },
+
+  "sender": {
+    "name": "J. Okafor",
+    "title": "Head of Partnerships",
+    "is_real_person_who_agreed": "yes",
+    "sees_replies": "yes",
+    "additional_personas": ["M. Chen, Operations Lead", "P. Nowak, Customer Success"]
+  },
+
+  "infrastructure": {
+    "target_monthly_sends": 12000,
+    "esp": "google-workspace",
+    "dns_host": "Same as registrar",
+    "registrar": "Client's existing registrar account",
+    "crm": "Client's existing CRM",
+    "sending_platform": "To be selected during the build",
+    "existing_sending_domains": ["example.com"],
+    "prior_cold_sending": "no",
+    "blocklist_history": null,
+    "channels": ["email"]
+  },
+
+  "reply_capacity": {
+    "replies_per_week": 30,
+    "who_answers": "A. Rivera, with M. Chen as second reader",
+    "escalation_path": "Technical questions to the implementation lead within the same day. Pricing questions to A. Rivera only.",
+    "absence_cover": "M. Chen, with a shared inbox view so nothing waits for a return"
+  },
+
+  "compliance": {
+    "jurisdictions": ["US", "UK", "CA"],
+    "us_contacts": "yes",
+    "uk_eu_contacts": "yes",
+    "lia_reference": "LIA-2026-014",
+    "personal_or_sole_trader_addresses": "no",
+    "canadian_contacts": "yes",
+    "canadian_consent_basis": "Implied consent only, from inbound inquiries within the last 6 months. Expiry recorded per contact. No purchased Canadian data is in scope.",
+    "sms_consent_basis": null,
+    "counsel_signed_off": "yes",
+    "unsubscribe_url": "https://example.com/unsubscribe",
+    "data_retention_days": 730
+  },
+
+  "list": {
+    "has_list": "yes",
+    "contact_count": 4200,
+    "source": "Built in-house from public company listings and conference attendee lists over the last 14 months.",
+    "verified": "no",
+    "previously_emailed": "yes",
+    "suppression_list_supplied": "yes",
+    "existing_customers_supplied": "yes",
+    "format": "CSV, headers: Company, Contact Name, Job Title, Email, Website, Employees, Country, Source"
+  },
+
+  "commercial": {
+    "engagement": "sprint plus retainer",
+    "target_start_date": "2026-04-06",
+    "reporting_cadence": "weekly",
+    "budget_range": null,
+    "signer": "A. Rivera",
+    "procurement_review_required": "no"
+  }
+}

@@ -1,0 +1,6 @@
+# Normalize to LF in the repository. The Python scripts carry a #!/usr/bin/env shebang,
+# which a CRLF checkout breaks on Linux and macOS.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.pdf binary
