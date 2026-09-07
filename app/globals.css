@@ -1,0 +1,105 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-paper-sunk text-ink antialiased;
+  }
+  ::selection {
+    @apply bg-brand-100 text-brand-700;
+  }
+  /* Keyboard focus stays visible; pointer focus does not draw a ring. */
+  :focus-visible {
+    @apply outline-none ring-2 ring-brand-400 ring-offset-2 ring-offset-white;
+  }
+}
+
+@layer components {
+  /* Rendered markdown from the API. Not @tailwindcss/typography — this is a short,
+     specific list of elements our documents actually use, and nothing else. */
+  .md-body {
+    @apply text-ink-soft;
+  }
+  .md-body > *:first-child {
+    @apply mt-0;
+  }
+  .md-body h1 {
+    @apply mt-0 mb-3 text-3xl font-semibold tracking-tight text-ink;
+  }
+  .md-body h2 {
+    @apply mt-10 mb-3 border-b border-edge-soft pb-2 text-2xl font-semibold tracking-tight text-ink;
+  }
+  .md-body h3 {
+    @apply mt-8 mb-2 text-lg font-semibold text-ink;
+  }
+  .md-body h4 {
+    @apply mt-6 mb-2 text-base font-semibold text-ink-soft;
+  }
+  .md-body p {
+    @apply my-3 max-w-[80ch];
+  }
+  .md-body ul {
+    @apply my-3 max-w-[80ch] list-disc space-y-1 pl-6;
+  }
+  .md-body ol {
+    @apply my-3 max-w-[80ch] list-decimal space-y-1 pl-6;
+  }
+  .md-body li::marker {
+    @apply text-ink-faint;
+  }
+  .md-body a {
+    @apply font-medium text-brand-600 underline underline-offset-2 hover:text-brand-700;
+  }
+  .md-body strong {
+    @apply font-semibold text-ink;
+  }
+  .md-body hr {
+    @apply my-8 border-edge-soft;
+  }
+  .md-body blockquote {
+    @apply my-4 rounded-r-lg border-l-[3px] border-brand-400 bg-brand-50/60 px-5 py-3 text-ink-soft;
+  }
+  .md-body blockquote p {
+    @apply my-1.5;
+  }
+  .md-body code {
+    @apply rounded bg-paper-sunk px-1.5 py-0.5 font-mono text-[0.9em] text-brand-700
+           ring-1 ring-inset ring-edge-soft;
+  }
+  .md-body pre {
+    @apply my-4 overflow-x-auto rounded-xl border border-edge bg-[#fbfbfd] p-4
+           font-mono text-sm leading-relaxed text-ink-soft;
+  }
+  .md-body pre code {
+    @apply bg-transparent p-0 text-inherit ring-0;
+  }
+  /* Tables are wide. Let them scroll inside their own box rather than pushing the page. */
+  .md-body table {
+    @apply my-4 block w-full overflow-x-auto border-separate border-spacing-0 text-sm;
+  }
+  .md-body thead th {
+    @apply whitespace-nowrap border-b border-edge bg-paper-sunk px-3.5 py-2.5 text-left
+           text-xs font-semibold uppercase tracking-wide text-ink-muted;
+  }
+  .md-body tbody td {
+    @apply border-b border-edge-soft px-3.5 py-2.5 align-top;
+  }
+  .md-body tbody tr:last-child td {
+    @apply border-b-0;
+  }
+  .md-body input[type='checkbox'] {
+    @apply mr-1.5 align-middle accent-brand-500;
+  }
+}
+
+/* Thin scrollbars, so the many scrolling tables do not dominate the page. */
+@supports (scrollbar-width: thin) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #cfd4de transparent;
+  }
+}

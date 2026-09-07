@@ -61,48 +61,72 @@ have infrastructure that is underperforming.
 - Python 3.11 or later
 - PostgreSQL 14 or later (only for `07-data/`)
 
-**The planners themselves are standard-library only.** Every script in the numbered directories
-runs with nothing installed, with one exception: `07-data/list_pipeline.py` needs a Postgres
-driver to *load* records, and its `--dry-run` mode performs the full parse, validate, dedupe and
-suppression pass without a database or any dependency at all.
+- Node 18 or later (only for the dashboard)
+
+**Nothing in this repository needs a dependency to run.** Every planner in the numbered
+directories is standard-library Python, and so is every API function in `api/`. Two exceptions,
+both optional:
 
 ```bash
-pip install -r requirements.txt       # web app only
-pip install -r requirements-cli.txt   # Postgres driver, for list_pipeline.py loads
+pip install -r requirements-cli.txt   # Postgres driver, only to LOAD with list_pipeline.py
+npm install                           # the dashboard
 ```
 
-## Web app
+`07-data/list_pipeline.py --dry-run` performs the full parse, validate, dedupe and suppression
+pass with no database and no install at all.
 
-`api/index.py` serves the five planners as forms and the fifteen templates as a browsable
-handbook. It is a thin layer: it imports the same functions the CLIs call, so the two can never
-disagree about what the system does.
+## Dashboard
+
+A Next.js app over the same planners. It is a thin layer with no logic of its own: each page
+calls a Python function in `api/`, which imports the planner out of the numbered directories and
+calls the same function the CLI calls. The dashboard and the command line cannot disagree.
+
+```
+app/            Next.js App Router pages
+components/     UI primitives and the sidebar
+lib/api.ts      typed client for the functions below
+api/*.py        one Vercel serverless function per endpoint, standard library only
+scripts/dev_api.py   serves those same functions locally
+```
+
+Two processes in development — Next.js proxies `/api/*` to the Python server (see
+`next.config.mjs`):
 
 ```bash
-pip install -r requirements.txt
-uvicorn api.index:app --reload
-# http://127.0.0.1:8000
+npm run api     # terminal 1 — Python functions on :8787
+npm run dev     # terminal 2 — dashboard on :3000
 ```
 
-| Route | What it does |
+| Page | |
 |---|---|
-| `/` | Overview and the engagement flow |
+| `/` | Overview, the seven stages, the compliance position |
 | `/tools/domain-plan` | Volume target to domain and mailbox count |
-| `/tools/dns-records` | SPF, DKIM, DMARC, MX and tracking for one domain |
-| `/tools/cadence` | Node map and CRM build order |
+| `/tools/dns-records` | SPF, DKIM, DMARC, MX and tracking, with the client-facing explanation |
+| `/tools/cadence` | Node map, lanes, interrupt branch, CRM build order |
 | `/tools/audit` | Render an audit from a findings file |
-| `/tools/intake` | Intake to build spec, with blockers flagged |
+| `/tools/intake` | Intake to build spec, with blockers and warnings surfaced |
 | `/docs` | All fifteen templates and specifications |
-| `/healthz` | Reports whether every tool and document loaded |
-| `/api/*` | The same planners as JSON |
 
-**Deployment.** `vercel.json` sets `includeFiles` so the numbered directories ship with the
-function — without it the app deploys but every tool reports "not bundled". `/healthz` is the
-fastest way to confirm a deployment is intact: it loads all five tools, checks every document is
-present, and returns 503 if anything is missing.
+| Endpoint | |
+|---|---|
+| `POST /api/domain-plan` · `POST /api/dns-records` · `POST /api/cadence` | the planners |
+| `POST /api/audit` · `POST /api/intake` | render from a JSON document |
+| `GET /api/docs` | index, or one document with `?path=` |
+| `GET /api/health` | whether every tool and document loaded |
 
-Nothing here should be public. The app serves your pricing model and scope templates, and
-`robots.txt` disallows everything, but that is not access control — put it behind Vercel's
-deployment protection or keep it local.
+**Deployment.** Vercel builds the Next.js app and deploys each `api/*.py` as its own function.
+`vercel.json` sets `includeFiles` so the numbered directories ship with those functions —
+without it the app deploys but every tool reports "not bundled". **`/api/health` is the fastest
+way to confirm a deployment is intact:** it loads all five planners, checks all fifteen
+documents, and returns 503 naming whatever is missing.
+
+Markdown rendered in the browser is sanitized with DOMPurify before it is inserted. The audit
+and intake documents are built from user-supplied JSON, so a `client_name` of `<script>…</script>`
+reaches the page; without sanitizing it would execute.
+
+**Nothing here should be public.** The dashboard serves your pricing model — cost rates, margins,
+floor-price headroom — and your scope templates. The app sets `noindex`, but that is not access
+control. Put the deployment behind Vercel's deployment protection, or keep it local.
 
 ## Running the scripts
 
