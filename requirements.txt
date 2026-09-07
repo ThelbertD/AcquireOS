@@ -1,9 +1,17 @@
-# Standard library only, with one exception.
+# Web application dependencies.
 #
-# 07-data/list_pipeline.py needs a Postgres driver to load records. Its --dry-run mode
-# performs the full parse, normalize, validate, dedupe and suppression pass with no
-# database and no dependencies, so nothing here is required to exercise that logic.
-#
-# Every other script in this repository runs on the Python 3.11+ standard library.
+# These are what Vercel installs to run api/index.py. The toolkit's planners themselves are
+# standard-library only; these exist purely to serve them over HTTP.
 
-psycopg[binary]>=3.1
+fastapi>=0.110
+python-multipart>=0.0.9
+markdown>=3.5
+
+# Local development only - Vercel provides its own ASGI server.
+uvicorn>=0.27
+
+# NOT installed here. 07-data/list_pipeline.py needs a Postgres driver to load records, but
+# nothing on the web side touches Postgres, and psycopg's binary wheel is large enough to be
+# worth keeping out of the function bundle. Install it separately when running the pipeline:
+#
+#     pip install -r requirements-cli.txt

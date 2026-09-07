@@ -61,16 +61,48 @@ have infrastructure that is underperforming.
 - Python 3.11 or later
 - PostgreSQL 14 or later (only for `07-data/`)
 
-Install dependencies:
+**The planners themselves are standard-library only.** Every script in the numbered directories
+runs with nothing installed, with one exception: `07-data/list_pipeline.py` needs a Postgres
+driver to *load* records, and its `--dry-run` mode performs the full parse, validate, dedupe and
+suppression pass without a database or any dependency at all.
+
+```bash
+pip install -r requirements.txt       # web app only
+pip install -r requirements-cli.txt   # Postgres driver, for list_pipeline.py loads
+```
+
+## Web app
+
+`api/index.py` serves the five planners as forms and the fifteen templates as a browsable
+handbook. It is a thin layer: it imports the same functions the CLIs call, so the two can never
+disagree about what the system does.
 
 ```bash
 pip install -r requirements.txt
+uvicorn api.index:app --reload
+# http://127.0.0.1:8000
 ```
 
-Every script in this repo runs on the standard library alone except `07-data/list_pipeline.py`,
-which needs a Postgres driver to load. That script has a `--dry-run` mode that requires no
-database and no dependencies, so the validation and rejection logic can be exercised without
-any install.
+| Route | What it does |
+|---|---|
+| `/` | Overview and the engagement flow |
+| `/tools/domain-plan` | Volume target to domain and mailbox count |
+| `/tools/dns-records` | SPF, DKIM, DMARC, MX and tracking for one domain |
+| `/tools/cadence` | Node map and CRM build order |
+| `/tools/audit` | Render an audit from a findings file |
+| `/tools/intake` | Intake to build spec, with blockers flagged |
+| `/docs` | All fifteen templates and specifications |
+| `/healthz` | Reports whether every tool and document loaded |
+| `/api/*` | The same planners as JSON |
+
+**Deployment.** `vercel.json` sets `includeFiles` so the numbered directories ship with the
+function — without it the app deploys but every tool reports "not bundled". `/healthz` is the
+fastest way to confirm a deployment is intact: it loads all five tools, checks every document is
+present, and returns 503 if anything is missing.
+
+Nothing here should be public. The app serves your pricing model and scope templates, and
+`robots.txt` disallows everything, but that is not access control — put it behind Vercel's
+deployment protection or keep it local.
 
 ## Running the scripts
 

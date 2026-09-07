@@ -1,0 +1,9 @@
+# Command-line dependencies.
+#
+# Only 07-data/list_pipeline.py needs anything, and only to load records into Postgres. Its
+# --dry-run mode performs the full parse, normalize, validate, dedupe and suppression pass
+# with no database and no dependencies at all.
+#
+# Every other script in this repository runs on the Python 3.11+ standard library.
+
+psycopg[binary]>=3.1
