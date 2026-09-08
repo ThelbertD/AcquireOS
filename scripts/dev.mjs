@@ -52,6 +52,9 @@ function start(name, color, cmd, args, opts = {}) {
     cwd: ROOT,
     shell: false,
     stdio: ['ignore', 'pipe', 'pipe'],
+    // On POSIX this makes the child a process-group leader, so killTree can signal the whole
+    // group. Windows has no equivalent and uses taskkill /T instead.
+    detached: process.platform !== 'win32',
     ...opts,
   })
   child.stdout.on('data', prefix(name, color))
@@ -71,19 +74,39 @@ function start(name, color, cmd, args, opts = {}) {
   return child
 }
 
+/**
+ * Stop both children, and everything they started.
+ *
+ * `child.kill()` on Windows terminates only the process it was given. `next dev` spawns worker
+ * processes of its own, so killing it directly leaves those workers holding the port — the next
+ * `npm run dev` then fails with EADDRINUSE for no visible reason. taskkill /T covers the tree.
+ */
+function killTree(child) {
+  if (!child.pid || child.killed) return
+  try {
+    if (process.platform === 'win32') {
+      spawn('taskkill', ['/pid', String(child.pid), '/T', '/F'], {
+        stdio: 'ignore',
+        shell: false,
+      })
+    } else {
+      // Negative pid signals the whole process group.
+      try {
+        process.kill(-child.pid, 'SIGTERM')
+      } catch {
+        child.kill('SIGTERM')
+      }
+    }
+  } catch {
+    /* already gone */
+  }
+}
+
 function shutdown(code = 0) {
   if (shuttingDown) return
   shuttingDown = true
-  for (const child of children) {
-    if (!child.killed) {
-      try {
-        child.kill('SIGTERM')
-      } catch {
-        /* already gone */
-      }
-    }
-  }
-  setTimeout(() => process.exit(code), 300)
+  for (const child of children) killTree(child)
+  setTimeout(() => process.exit(code), 600)
 }
 
 process.on('SIGINT', () => {
@@ -91,6 +114,11 @@ process.on('SIGINT', () => {
   shutdown(0)
 })
 process.on('SIGTERM', () => shutdown(0))
+process.on('SIGHUP', () => shutdown(0))
+// Last resort: if this process exits for any other reason, still take the children with it.
+process.on('exit', () => {
+  for (const child of children) killTree(child)
+})
 
 console.log(
   [
