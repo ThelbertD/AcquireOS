@@ -4,8 +4,9 @@
   "private": true,
   "description": "Outbound pipeline system — dashboard for the planners in the numbered directories",
   "scripts": {
-    "dev": "next dev",
-    "api": "python scripts/dev_api.py",
+    "dev": "node scripts/dev.mjs",
+    "dev:web": "next dev",
+    "api": "node scripts/api.mjs",
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit"

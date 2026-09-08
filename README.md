@@ -89,13 +89,30 @@ api/*.py        one Vercel serverless function per endpoint, standard library on
 scripts/dev_api.py   serves those same functions locally
 ```
 
-Two processes in development — Next.js proxies `/api/*` to the Python server (see
-`next.config.mjs`):
+### Running it
 
 ```bash
-npm run api     # terminal 1 — Python functions on :8787
-npm run dev     # terminal 2 — dashboard on :3000
+npm install
+npm run dev     # http://localhost:3000
 ```
+
+`npm run dev` starts both processes — the Python handlers on `:8787` and Next.js on `:3000`,
+which proxies `/api/*` to them (see `next.config.mjs`). Output is prefixed `api` and `web`, and
+Ctrl-C stops both. Two processes are needed only in development; Vercel runs the functions for
+you in production.
+
+`npm run api` and `npm run dev:web` run them separately if you want them in different terminals.
+
+**On finding Python.** The scripts do not call `python` directly. On Windows that name usually
+resolves to the Microsoft Store alias stub, which is not an interpreter — it prints "Python was
+not found" and exits non-zero, and it sits ahead of real installs on PATH.
+`scripts/find-python.mjs` probes `py -3`, `python3`, `python` and the per-user install
+directories by actually running each one, and uses the first that reports 3.11 or later.
+
+**Do not keep this in a synced folder.** OneDrive, Dropbox and iCloud all try to sync
+`node_modules` (10,000+ files) and everything `.next` rewrites on each build. That causes file
+lock errors, failed builds, and slow installs. Clone it to a plain local path such as
+`C:\dev\AcquireOS` or `~/dev/AcquireOS`.
 
 | Page | |
 |---|---|
