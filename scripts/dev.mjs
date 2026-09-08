@@ -8,11 +8,18 @@
  */
 
 import { spawn } from 'node:child_process'
+import { existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { requirePython } from './find-python.mjs'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
+
+// Next.js is started through its own JS entry rather than through `npx next`. Since Node 20,
+// spawning a .cmd shim on Windows without shell:true throws EINVAL, and turning the shell on
+// to work around that brings quoting problems of its own. Running the script with the current
+// Node binary sidesteps both and behaves identically on every platform.
+const NEXT_BIN = join(ROOT, 'node_modules', 'next', 'dist', 'bin', 'next')
 const API_PORT = process.env.API_PORT || '8787'
 const WEB_PORT = process.env.PORT || '3000'
 
@@ -98,10 +105,12 @@ console.log(
   ].join('\n'),
 )
 
+if (!existsSync(NEXT_BIN)) {
+  console.error(
+    `${C.bad}Next.js is not installed.${C.reset} Run ${C.ok}npm install${C.reset} first.\n`,
+  )
+  process.exit(1)
+}
+
 start('api', C.api, python.cmd, [...python.args, join('scripts', 'dev_api.py'), '--port', API_PORT])
-start('web', C.web, process.platform === 'win32' ? 'npx.cmd' : 'npx', [
-  'next',
-  'dev',
-  '--port',
-  WEB_PORT,
-])
+start('web', C.web, process.execPath, [NEXT_BIN, 'dev', '--port', WEB_PORT])
